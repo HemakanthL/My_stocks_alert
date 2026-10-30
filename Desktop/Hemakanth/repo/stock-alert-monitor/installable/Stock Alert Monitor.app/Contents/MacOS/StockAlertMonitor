@@ -1,0 +1,15 @@
+#!/bin/zsh
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+RESOURCES_DIR="$APP_DIR/Resources"
+JAR_PATH="$RESOURCES_DIR/stock-alert-monitor-0.0.1-SNAPSHOT.jar"
+
+if [ ! -f "$JAR_PATH" ]; then
+    echo "Missing application jar at $JAR_PATH" >&2
+    exit 1
+fi
+
+export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+cd "$RESOURCES_DIR"
+exec java -Dserver.port=8081 -jar "$JAR_PATH"

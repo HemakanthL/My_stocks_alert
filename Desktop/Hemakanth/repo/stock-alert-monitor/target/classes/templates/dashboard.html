@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Alert Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(180deg, #edf3ff 0%, #eef2f7 100%);
+            margin: 0;
+            padding: 28px;
+            color: #1f2937;
+        }
+        .app-shell {
+            max-width: 1280px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.8);
+            border: 1px solid rgba(148,163,184,0.25);
+            border-radius: 18px;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+            overflow: hidden;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #0f172a, #1d4ed8);
+            color: white;
+            padding: 18px 24px;
+        }
+        .topbar h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        .chip {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .content {
+            padding: 24px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #dde7f8;
+            border-radius: 12px;
+            padding: 18px 20px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        }
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .toolbar {
+            margin-bottom: 20px;
+            padding: 18px 20px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        }
+        .toolbar h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+        }
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        form.inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: end;
+        }
+        label {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+            color: #4b5563;
+            gap: 6px;
+        }
+        input, select, button {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 6px;
+        }
+        button {
+            background: linear-gradient(180deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            min-width: 110px;
+        }
+        button.delete {
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 22px;
+        }
+        .panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+            padding: 18px 20px;
+        }
+        .panel h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .enabled { background: #dcfce7; color: #166534; }
+        .disabled { background: #fee2e2; color: #991b1b; }
+        .triggered {
+            background: linear-gradient(180deg, #fff7ed, #fffbeb);
+            border: 1px solid #fed7aa;
+            border-left: 5px solid #f59e0b;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+        }
+        .empty {
+            color: #6b7280;
+            font-style: italic;
+        }
+    </style>
+    <script>
+        function filterTable() {
+            const input = document.getElementById('symbol-search');
+            const filter = input.value.toUpperCase();
+            const rows = document.querySelectorAll('#alert-table-body tr[data-symbol]');
+
+            rows.forEach(row => {
+                const symbol = row.getAttribute('data-symbol') || '';
+                row.style.display = symbol.includes(filter) ? '' : 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('symbol-search');
+            if (input) {
+                input.addEventListener('input', filterTable);
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <div class="topbar">
+            <h1>Stock Alert Manager</h1>
+            <div class="chip">Desktop App</div>
+        </div>
+
+        <div class="content">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Stocks Tracked</div>
+                    <div class="stat-value" th:text="${#lists.size(alerts)}">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Triggered</div>
+                    <div class="stat-value" th:text="${#lists.size(triggeredAlerts)}">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Status</div>
+                    <div class="stat-value">Live</div>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-actions">
+                    <h2>Data Source</h2>
+                    <form th:action="@{/alerts/refresh}" method="post">
+                        <button type="submit">Refresh now</button>
+                    </form>
+                </div>
+                <form class="inline" th:action="@{/datasource}" th:object="${dataSourceSettings}" method="post">
+                    <label>
+                        Provider
+                        <select th:field="*{provider}">
+                            <option value="mock">Mock</option>
+                            <option value="alphavantage">Alpha Vantage</option>
+                            <option value="yahoo">Yahoo Finance</option>
+                        </select>
+                    </label>
+                    <label>
+                        API Key
+                        <input type="text" th:field="*{apiKey}" placeholder="Optional" />
+                    </label>
+                    <label>
+                        Base URL
+                        <input type="text" th:field="*{baseUrl}" placeholder="https://..." />
+                    </label>
+                    <button type="submit">Save source</button>
+                </form>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-actions">
+                    <h2>Add a stock</h2>
+                    <div class="search-box">
+                        <label for="symbol-search">Quick search</label>
+                        <input id="symbol-search" type="text" placeholder="Search symbols" />
+                    </div>
+                </div>
+                <form class="inline" th:action="@{/alerts/create}" th:object="${newAlert}" method="post">
+                    <label>
+                        Symbol
+                        <input type="text" th:field="*{symbol}" placeholder="e.g. AAPL" required />
+                    </label>
+                    <label>
+                        Direction
+                        <select th:field="*{direction}">
+                            <option value="ABOVE">Above</option>
+                            <option value="BELOW">Below</option>
+                        </select>
+                    </label>
+                    <label>
+                        Threshold
+                        <input type="number" th:field="*{threshold}" step="0.01" min="0.01" placeholder="230.00" required />
+                    </label>
+                    <label>
+                        Enabled
+                        <input type="checkbox" th:field="*{enabled}" />
+                    </label>
+                    <button type="submit">Add stock</button>
+                </form>
+            </div>
+
+            <div class="grid">
+                <div class="panel">
+                    <h2>Active Alerts</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Direction</th>
+                                <th>Threshold</th>
+                                <th>Status</th>
+                                <th>Last Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alert-table-body">
+                            <tr th:if="${#lists.isEmpty(alerts)}">
+                                <td colspan="6" class="empty">No alerts configured.</td>
+                            </tr>
+                            <tr th:each="alert : ${alerts}" th:attr="data-symbol=${alert.symbol}">
+                                <td th:text="${alert.symbol}">AAPL</td>
+                                <td th:text="${alert.direction}">ABOVE</td>
+                                <td th:text="${'$' + #numbers.formatDecimal(alert.threshold, 1, 2)}">$230.00</td>
+                                <td>
+                                    <span th:classappend="${alert.enabled} ? 'enabled' : 'disabled'" class="status"
+                                          th:text="${alert.enabled ? 'Enabled' : 'Disabled'}">Enabled</span>
+                                </td>
+                                <td th:text="${'$' + #numbers.formatDecimal(alert.lastPrice, 1, 2)}">$0.00</td>
+                                <td>
+                                    <form th:action="@{/alerts/{id}/delete(id=${alert.id})}" method="post">
+                                        <button class="delete" type="submit">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <h2>Triggered Alerts</h2>
+                    <div th:if="${#lists.isEmpty(triggeredAlerts)}" class="empty">No alerts triggered yet.</div>
+                    <div th:each="alert : ${triggeredAlerts}" class="triggered">
+                        <strong th:text="${alert.symbol}">AAPL</strong>
+                        <div th:text="${alert.lastTriggeredMessage}">Alert message</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
