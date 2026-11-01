@@ -1,7 +1,6 @@
 package com.example.stockalert.service;
 
 import com.example.stockalert.config.DataSourceProperties;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -10,7 +9,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@ConditionalOnExpression("('${stock.data.provider:mock}' == 'yahoo') or ('${market.api.enabled:false}' == 'true' and '${stock.data.provider:mock}' == 'mock')")
 public class YahooFinanceMarketDataService implements MarketDataService {
 
     private final DataSourceProperties dataSourceProperties;

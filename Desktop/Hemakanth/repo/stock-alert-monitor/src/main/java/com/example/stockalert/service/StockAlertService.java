@@ -104,7 +104,7 @@ public class StockAlertService {
         }
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRateString = "${stock.monitor.fixed-rate-ms:21600000}")
     public void monitorSelectedStocks() {
         refreshAlerts();
     }

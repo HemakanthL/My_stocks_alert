@@ -1,26 +1,33 @@
 package com.example.stockalert.service;
 
 import com.example.stockalert.config.DataSourceProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
 @Primary
 public class ConfiguredMarketDataService implements MarketDataService {
 
-    private final ApplicationContext applicationContext;
     private final DataSourceProperties dataSourceProperties;
+    private final AlphaVantageMarketDataService alphaVantageMarketDataService;
+    private final YahooFinanceMarketDataService yahooFinanceMarketDataService;
+    private final MockMarketDataService mockMarketDataService;
 
-    @Autowired
-    public ConfiguredMarketDataService(ApplicationContext applicationContext, DataSourceProperties dataSourceProperties) {
-        this.applicationContext = applicationContext;
+    public ConfiguredMarketDataService(
+            DataSourceProperties dataSourceProperties,
+            AlphaVantageMarketDataService alphaVantageMarketDataService,
+            YahooFinanceMarketDataService yahooFinanceMarketDataService,
+            MockMarketDataService mockMarketDataService
+    ) {
         this.dataSourceProperties = dataSourceProperties;
+        this.alphaVantageMarketDataService = alphaVantageMarketDataService;
+        this.yahooFinanceMarketDataService = yahooFinanceMarketDataService;
+        this.mockMarketDataService = mockMarketDataService;
     }
 
     @Override
@@ -34,13 +41,15 @@ public class ConfiguredMarketDataService implements MarketDataService {
     }
 
     private MarketDataService resolveDelegate() {
-        String provider = dataSourceProperties.getProvider() == null ? "mock" : dataSourceProperties.getProvider().trim().toLowerCase();
+        String provider = dataSourceProperties.getProvider() == null
+                ? "mock"
+                : dataSourceProperties.getProvider().trim().toLowerCase(Locale.ROOT);
 
         return switch (provider) {
-            case "alphavantage" -> applicationContext.getBean(AlphaVantageMarketDataService.class);
-            case "yahoo" -> applicationContext.getBean(YahooFinanceMarketDataService.class);
-            case "mock" -> applicationContext.getBean(MockMarketDataService.class);
-            default -> applicationContext.getBean(MockMarketDataService.class);
+            case "alphavantage" -> alphaVantageMarketDataService;
+            case "yahoo" -> yahooFinanceMarketDataService;
+            case "mock" -> mockMarketDataService;
+            default -> throw new IllegalStateException("Unsupported stock data provider: " + provider);
         };
     }
 }

@@ -1,6 +1,5 @@
 package com.example.stockalert.service;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -9,7 +8,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@ConditionalOnExpression("('${stock.data.provider:mock}' == 'mock') and ('${market.api.enabled:false}' != 'true')")
 public class MockMarketDataService implements MarketDataService {
 
     private static final Map<String, BigDecimal> BASE_PRICES = Map.of(

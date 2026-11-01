@@ -2,6 +2,8 @@ package com.example.stockalert.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.Locale;
+
 @ConfigurationProperties(prefix = "stock.data")
 public class DataSourceProperties {
 
@@ -14,7 +16,17 @@ public class DataSourceProperties {
     }
 
     public void setProvider(String provider) {
-        this.provider = provider;
+        if (provider == null || provider.isBlank()) {
+            this.provider = "mock";
+            return;
+        }
+
+        this.provider = switch (provider.trim().toLowerCase(Locale.ROOT)) {
+            case "alphavantage", "alphavantagemarketdataservice" -> "alphavantage";
+            case "yahoo", "yahoofinancemarketdataservice" -> "yahoo";
+            case "mock", "mockmarketdataservice" -> "mock";
+            default -> provider.trim().toLowerCase(Locale.ROOT);
+        };
     }
 
     public String getApiKey() {

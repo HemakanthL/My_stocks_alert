@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -40,9 +41,11 @@ public class WebDashboardController {
         model.addAttribute("newAlert", new AlertRequest("", null, null, true));
         model.addAttribute("dataSourceSettings", new DataSourceSettings(
                 dataSourceProperties.getProvider(),
-                dataSourceProperties.getApiKey(),
+                "",
                 dataSourceProperties.getBaseUrl()
         ));
+        model.addAttribute("apiKeyConfigured",
+                dataSourceProperties.getApiKey() != null && !dataSourceProperties.getApiKey().isBlank());
         return "dashboard";
     }
 
@@ -53,15 +56,21 @@ public class WebDashboardController {
     }
 
     @PostMapping("/alerts/refresh")
-    public String refreshAlerts() {
-        stockAlertService.refreshAlerts();
+    public String refreshAlerts(RedirectAttributes redirectAttributes) {
+        try {
+            stockAlertService.refreshAlerts();
+        } catch (IllegalStateException exception) {
+            redirectAttributes.addFlashAttribute("refreshError", exception.getMessage());
+        }
         return "redirect:/";
     }
 
     @PostMapping("/datasource")
     public String updateDataSource(@ModelAttribute("dataSourceSettings") DataSourceSettings settings) {
         dataSourceProperties.setProvider(settings.provider());
-        dataSourceProperties.setApiKey(settings.apiKey());
+        if (settings.apiKey() != null && !settings.apiKey().isBlank()) {
+            dataSourceProperties.setApiKey(settings.apiKey());
+        }
         dataSourceProperties.setBaseUrl(settings.baseUrl());
         return "redirect:/";
     }
