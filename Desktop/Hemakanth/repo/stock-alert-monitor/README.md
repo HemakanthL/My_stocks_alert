@@ -89,3 +89,18 @@ The app seeds a few example alerts when it starts:
 - MSFT above 420.00
 
 This makes the system immediately useful without manual setup.
+
+## Technical specifications
+
+### CR-2026-002: Harden stock market data configuration and refresh
+
+- **Purpose:** Ensure provider selection and manual/background price refreshes use the configured market-data service and do not misrepresent sample data as live quotes.
+- **Affected components:** `DataSourceProperties`, `ConfiguredMarketDataService`, market-data provider services, `StockAlertService`, dashboard and datasource controllers, datasource response DTO, dashboard template, and application configuration.
+- **Design and behavior:** Normalize provider identifiers, inject provider services directly, and report Alpha Vantage missing-key, HTTP, network, invalid-price, and provider quota/response errors rather than silently returning mock prices. The dashboard displays refresh errors and masks API-key input; datasource API responses expose only whether a key is configured. Automatic polling defaults to six hours (`stock.monitor.fixed-rate-ms`).
+- **Configuration and API impacts:** Configure credentials through `STOCK_DATA_API_KEY` or the dashboard. The dashboard datasource form accepts a blank key to retain the current key. `GET` and `POST /api/datasource` return `apiKeyConfigured` rather than the API key. Yahoo Finance remains a sample-data provider.
+
+### CR-2026-001: Document change-requested work
+
+- **Purpose:** Keep a concise technical record for each requested code or process change.
+- **Affected component:** Copilot custom agent instructions in `.github/agents/stock-alert-monitor.agent.md`.
+- **Process:** For each code or process change, add or update a spec entry here with its CR number, purpose, affected components, intended design/behavior, and relevant configuration or API impacts. Use a developer-provided CR number when available; otherwise assign the next unused `CR-YYYY-NNN` for the current year by checking this section. Do not invent or reuse an existing ID.
