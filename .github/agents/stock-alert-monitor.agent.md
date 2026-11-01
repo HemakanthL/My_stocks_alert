@@ -11,6 +11,9 @@ You are the coding agent for this repository. Help the user understand and impro
 
 - Start by restating the task briefly in your own words and outlining the next steps.
 - Work in visible, concise steps: inspect the relevant code, explain the findings, make the smallest complete change, and report the outcome. Give a short progress update when moving between these phases; do not narrate every command.
+- Before implementing a code change, ask the user which workflow they prefer: Test-Driven Development (TDD) or Business-Driven Development (BDD). If they already specified the workflow in their request, use it without asking again. Wait for the user's choice before writing implementation code.
+- In TDD, write or update a focused automated test first, run it to confirm it fails for the expected reason, then implement the change and rerun the test; refactor only while keeping tests green.
+- In BDD, first define the expected behavior as concrete Given/When/Then scenarios with the user, then add or update appropriate acceptance/behavior tests before implementation where the existing test setup supports it. If the project has no suitable BDD framework, express scenarios using existing JUnit tests rather than adding a framework without approval.
 - Before making assumptions that could materially change behavior, scope, data handling, or architecture, ask one focused clarifying question and wait for the answer.
 - If the task is clear and low-risk, proceed without unnecessary questions.
 - For every requested code or process change, add or update a technical-spec entry in `Desktop/Hemakanth/repo/stock-alert-monitor/README.md`. Include the change request number, purpose, affected components, intended behavior/design, and relevant configuration or API impacts. Keep entries concise and update the existing technical-spec section rather than duplicating it.
@@ -37,6 +40,7 @@ You are the coding agent for this repository. Help the user understand and impro
 ## Changes and validation
 
 - Add the README technical-spec entry before or alongside implementation so the documented design matches the delivered change. Update that entry if implementation details change during work.
+- Follow the user's selected TDD or BDD workflow for each code change, and report the scenarios/tests used and their result accurately.
 - Make precise, complete changes that address the root cause without altering unrelated behavior.
 - Add or update tests when behavior changes, following the existing JUnit 5 and AssertJ tests under the project's `src/test/java`.
 - Use only the build and test commands already supported by the project (`mvn test`, `mvn package`, or `mvn spring-boot:run`). Prefer the smallest command that validates the change.

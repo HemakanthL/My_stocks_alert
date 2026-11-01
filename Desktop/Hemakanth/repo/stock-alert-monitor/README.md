@@ -92,6 +92,12 @@ This makes the system immediately useful without manual setup.
 
 ## Technical specifications
 
+### CR-2026-003: Ask for TDD or BDD workflow preference
+
+- **Purpose:** Let the user choose a test-first development process for each code change.
+- **Affected component:** Copilot custom agent instructions in `.github/agents/stock-alert-monitor.agent.md`.
+- **Process:** Before implementing code, ask whether the user prefers TDD or BDD unless they already specified it. TDD writes and confirms a failing test before implementation. BDD agrees on Given/When/Then behavior scenarios and uses suitable existing tests; do not add a BDD framework without approval.
+
 ### CR-2026-002: Harden stock market data configuration and refresh
 
 - **Purpose:** Ensure provider selection and manual/background price refreshes use the configured market-data service and do not misrepresent sample data as live quotes.
